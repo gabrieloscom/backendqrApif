@@ -1,41 +1,41 @@
-FROM node:18-alpine
+FROM node:20-alpine
 
-# Instalar dependencias necesarias para Chromium
+# Dependencias necesarias para Puppeteer + Canvas
 RUN apk add --no-cache \
-    udev \
-    chromium \
-    nss \
-    freetype \
-    fontconfig \
-    ttf-freefont
+  udev \
+  chromium \
+  nss \
+  freetype \
+  fontconfig \
+  ttf-freefont \
+  python3 \
+  make \
+  g++ \
+  libc6-compat \
+  cairo-dev \
+  pango-dev \
+  jpeg-dev \
+  giflib-dev \
+  pixman-dev \
+  build-base
 
-# Establecer variables de entorno para Puppeteer
+# Variables para Puppeteer
 ENV PUPPETEER_SKIP_DOWNLOAD=true
 ENV CHROME_PATH=/usr/bin/chromium-browser
 
-# Crear un directorio de trabajo
 WORKDIR /usr/src/app
 
-# Crear un grupo y un usuario no root llamado afip
+# Crear usuario no root
 RUN addgroup -S afipgroup && adduser -S afip -G afipgroup
 
-# Copiar los archivos de configuración como root
-COPY package.json package-lock.json ./
-
-# Instalar las dependencias de Node.js como root
+COPY package*.json ./
 RUN npm install
 
-# Cambiar la propiedad del directorio de trabajo
+# Asignar permisos y copiar resto del código
 RUN chown -R afip:afipgroup /usr/src/app
-
-# Cambiar al usuario afip
 USER afip
-
-# Copiar el resto de la aplicación y cambiar la propiedad
 COPY --chown=afip:afipgroup . .
 
-# Exponer el puerto
 EXPOSE 3001
 
-# Comando para iniciar la aplicación
 CMD ["node", "server.js"]
